@@ -18,7 +18,9 @@ function makeStaleCheckCC (cc, sharedOnly, value) {
       },
       {
         disconnect: true,
-        expected_type: 'not_cached'
+        expected_status: null,
+        check_body: false,
+        expected_response_headers_missing: ['server-request-count']
       }
     ]
   }
@@ -61,6 +63,7 @@ export default {
       name: 'An optimal cache serves stale stored response with [`Cache-Control: stale-while-revalidate`](https://httpwg.org/specs/rfc5861.html)',
       id: 'stale-while-revalidate',
       depends_on: ['freshness-max-age-stale'],
+      spec_anchors: ['https://www.rfc-editor.org/rfc/rfc5861.html#section-3'],
       kind: 'optimal',
       requests: [
         {
@@ -79,6 +82,7 @@ export default {
     {
       name: 'HTTP cache must not serve stale stored response after the [`stale-while-revalidate`](https://httpwg.org/specs/rfc5861.html) window',
       id: 'stale-while-revalidate-window',
+      spec_anchors: ['https://www.rfc-editor.org/rfc/rfc5861.html#section-3'],
       depends_on: ['stale-while-revalidate'],
       requests: [
         {
@@ -92,6 +96,10 @@ export default {
         {
           setup: true,
           pause_after: true,
+          response_headers: [
+            ['Cache-Control', 'no-cache', false],
+            ['ETag', '"def"', false]
+          ],
           expected_type: 'cached'
         },
         {
@@ -134,7 +142,8 @@ export default {
           pause_after: true
         },
         {
-          disconnect: true,
+          response_status: [503, 'Service Unavailable'],
+          expected_status: 200,
           expected_type: 'cached'
         }
       ]
