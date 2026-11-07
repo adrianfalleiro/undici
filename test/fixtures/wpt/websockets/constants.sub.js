@@ -15,6 +15,7 @@ if (url_has_flag('h2')) {
 }
 
 const SCHEME_DOMAIN_PORT = __SCHEME + '://' + __SERVER__NAME + ':' + __PORT;
+const SCHEME_CROSSDOMAIN_PORT = __SCHEME + '://' + '{{hosts[alt][www]}}' + ':' + __PORT;
 
 function url_has_variant(variant) {
   const params = new URLSearchParams(location.search);
@@ -42,12 +43,6 @@ function CreateWebSocketWithAsciiSep(asciiWithSep) {
   IsWebSocket();
   const url = SCHEME_DOMAIN_PORT + "/" + __PATH;
   return new WebSocket(url, asciiWithSep);
-}
-
-function CreateWebSocketWithBlockedPort(blockedPort) {
-  IsWebSocket();
-  const url = __SCHEME + "://" + __SERVER__NAME + ":" + blockedPort + "/" + __PATH;
-  return new WebSocket(url);
 }
 
 function CreateWebSocketWithSpaceInUrl(urlWithSpace) {
