@@ -817,6 +817,50 @@ describe('MockAgent - dispatch', () => {
       })
     })
   })
+
+  test('should route an onResponseEnd error to onResponseError after an async iterable body', async (t) => {
+    const baseUrl = 'http://localhost:9999'
+    const expected = new Error('fail')
+
+    const mockAgent = new MockAgent()
+    after(() => mockAgent.close())
+
+    const mockPool = mockAgent.get(baseUrl)
+    mockPool.intercept({
+      path: '/foo',
+      method: 'POST'
+    }).reply(200, 'hello')
+
+    async function * body () {
+      yield Buffer.from('hello')
+    }
+
+    await new Promise((resolve, reject) => {
+      mockAgent.dispatch({
+        origin: baseUrl,
+        path: '/foo',
+        method: 'POST',
+        body: body()
+      }, {
+        onRequestStart () {},
+        onBodySent () {},
+        onRequestSent () {},
+        onResponseStart () {},
+        onResponseData () {},
+        onResponseEnd () {
+          throw expected
+        },
+        onResponseError (_controller, error) {
+          try {
+            t.assert.strictEqual(error, expected)
+            resolve()
+          } catch (assertionError) {
+            reject(assertionError)
+          }
+        }
+      })
+    })
+  })
 })
 
 test('MockAgent - .close should clean up registered pools', async (t) => {
